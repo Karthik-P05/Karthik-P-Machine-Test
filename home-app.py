@@ -53,9 +53,7 @@ def insert():
         if user:
             return render_template('register.html', error = "Username already exists!", name=name, email=email, mobile=phone)
         
-        
-            
-        
+
         else:
             cur = mysql.connection.cursor()
             cur.execute("INSERT INTO users (name, mobile, email, username, password) VALUES (%s, %s, %s, %s, %s)",(name, phone, email, username, password))
@@ -141,19 +139,163 @@ def my_posts():
     
     user_id = session['login_id']
 
-    cur = mysql.connection.cursor()
+    # cur = mysql.connection.cursor()
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cur.execute("SELECT * FROM posts WHERE user_id = %s", (user_id,))
     posts = cur.fetchall()
     cur.close()
+    # print(posts)
 
     return render_template('my-post.html', posts=posts)
 
 
 
+@app.route('/deletepost/<int:post_id>')
+def delete_post(post_id):
+    
+    if 'loggedin' not in session:
+        return redirect('/home')
+
+    user_id = session['login_id']
+
+    cur = mysql.connection.cursor()
+    cur.execute("DELETE FROM posts WHERE post_id = %s AND user_id = %s", (post_id, user_id))
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect('/myposts')
+
+
+@app.route('/publishpost/<int:post_id>')
+def publish_post(post_id):
+    
+    if 'loggedin' not in session:
+        return redirect('/home')
+
+    user_id = session['login_id']
+
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE posts SET is_published = True WHERE post_id = %s AND user_id = %s", (post_id, user_id))
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect('/myposts')
+
+
+@app.route('/unpublish/<int:post_id>')
+def unpublish_post(post_id):
+    
+    if 'loggedin' not in session:
+        return redirect('/home')
+
+    user_id = session['login_id']
+
+    cur = mysql.connection.cursor()
+    cur.execute("UPDATE posts SET is_published = False WHERE post_id = %s AND user_id = %s", (post_id, user_id))
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect('/myposts')
 
 
 
+@app.route('/editpost/<int:post_id>')
+def edit_post(post_id):
+    if 'loggedin' not in session:
+        return redirect('/home')
+    
+    user_id = session['login_id']
+    
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT * FROM posts WHERE post_id = %s AND user_id = %s", (post_id, user_id))
+    post = cur.fetchone()
+    cur.close()
 
+    return render_template('edit-post.html', post = post)
+
+@app.route('/updatepost/<int:post_id>', methods=['GET', 'POST'])
+def update_post(post_id):
+    
+    if 'loggedin' not in session:
+        return redirect('/home')
+
+    if request.method == 'POST':
+        title = request.form['title']
+        description = request.form['description']
+        tags = request.form['tags']
+        
+        user_id = session['login_id']
+        
+        cur = mysql.connection.cursor()
+        cur.execute("UPDATE posts SET title = %s, description = %s, tags = %s WHERE post_id = %s AND user_id = %s", (title, description, tags, post_id, user_id))
+        mysql.connection.commit()
+        cur.close()
+        
+        return redirect(url_for('my_posts'))
+    
+    
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT * FROM posts WHERE post_id = %s AND user_id = %s", (post_id, user_id))
+    post = cur.fetchall()
+    cur.close()
+
+    return render_template('edit-post.html', post = post)
+
+
+# @app.route('/viewposts')
+# def view_posts():
+#     return render_template('view-posts.html')
+
+
+@app.route('/viewposts')
+def list_posts():
+    if 'loggedin' not in session:
+        return redirect('/home')
+    
+    user_id = session['login_id']
+    
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT * FROM likes")
+    like = cur.fetchone()
+    cur.close()
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("""
+        SELECT p.user_id, p.post_id, p.title, p.description,p.tags, p.created_at, p.is_published,
+        (SELECT COUNT(*) FROM likes WHERE post_id = p.post_id) as likes_count,
+        (SELECT name FROM users WHERE user_id = p.user_id) as user,
+        (SELECT COUNT(*) FROM likes WHERE post_id = p.post_id AND user_id = %s) as user_liked
+        FROM posts p
+        WHERE p.is_published = True
+        ORDER BY p.created_at DESC
+    """, (user_id,))
+    
+    posts = cur.fetchall()
+    cur.close()
+
+    return render_template('view-posts.html', posts=posts , like = like)
+
+
+@app.route('/like/<int:post_id>')
+def like_post(post_id):
+    if 'loggedin' not in session:
+        return redirect('/home')
+
+    user_id = session['login_id']
+
+    cur = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    cur.execute("SELECT * FROM likes WHERE post_id = %s AND user_id = %s", (post_id, user_id))
+    like = cur.fetchone()
+
+    if like:
+        cur.execute("DELETE FROM likes WHERE post_id = %s AND user_id = %s", (post_id, user_id))
+    else:
+        cur.execute("INSERT INTO likes (post_id, user_id) VALUES (%s, %s)", (post_id, user_id))
+
+    mysql.connection.commit()
+    cur.close()
+
+    return redirect('/viewposts')
 
 
 if __name__ == "__main__":

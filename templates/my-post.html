@@ -28,34 +28,53 @@
             </div>
 
             <hr>
+            {% if posts %}
 
             <div class="col-md-8 col-md-offset-2">
                 {% for post in posts %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                           <h4 style="text-align: center;"> <strong>{{ post.2 }}</strong></h4>
+                            <p>Status : 
+                            {% if post['is_published'] %}
+                                    <span class="label label-success">Published</span>
+                                {% else %}
+                                    <span class="label label-default">Unpublished</span>
+                            {% endif %}
+                            </p>
+                            <p>Created on : {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}   </p>
+
+                            <hr>
+
+                           <h4 style="text-align: center;"> <strong>Title : {{ post.title }}</strong></h4>
                         </div>
                         <div class="panel-body">
-                            <p>{{ post.3 }}</p>
-                            <p><strong>Tags:</strong> {{ post.4 }}</p>
+                            <p>{{ post.description }}</p>
+                            <p><strong>Tags:</strong> {{ post.tags }}</p>
                         </div>
                         <div class="panel-footer">
-                            {% if post.6 == 0 %}
-                            <a href="" class="btn btn-success">Publish</a>
-                            
-                            {% elif i.student_id.is_active == 1 %} 
-                            <button class="btn btn-warning" disabled="disabled">Published</button>
-                            <a href="" class="btn btn-danger">Un-Publish</a>
+                            <a href="/editpost/{{ post.post_id }}">Edit Post</a>
+                            <br>
+
+                            {% if post.is_published == 0 %}
+                            <a href="/publishpost/{{ post.post_id }}" class="btn btn-success">Publish</a>
                             
                             {% else %} 
-                            <a href="" class="btn btn-success">Publish</a>
-                            <button class="btn btn-danger" disabled="disables">Not Published</button>
+                            <a href="/unpublish/{{ post.post_id }}" class="btn btn-danger">Un-Publish</a>
+
                             {% endif %}
-                            <a href="" class="btn btn-warning">Delete</a>
+
+
+                            <a href="/deletepost/{{ post.post_id }}" class="btn btn-warning">Delete</a>
                         </div>
                     </div>
                 {% endfor %}
             </div>
+            {% else %}
+            <div class="col-md-8 col-md-offset-2 text-center">
+                <div class="alert alert-info text-center">No posts are available.</div>
+            </div>
+
+            {% endif %}
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
