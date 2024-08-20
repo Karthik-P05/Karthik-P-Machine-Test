@@ -5,12 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Post</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css">
+
+    
+
+
 </head>
 <body>
     <div class="container">
         <div class="row">
-            <div class="col-md-8 col-md-offset-2">
-                <h3>Create New Post</h3>
+            
+            <div class="col-md-8 col-md-offset-2" >
+                <div class="col-md-8">
+                    <h3>Create New Post</h3>
+                </div>
+                <div class="col-md-3 text-right" style="margin-top: 10px;">
+                    <a href="/userhome" class="btn btn-danger">Back</a>
+                </div>
+            </div>
+            <div class="col-md-8 col-md-offset-2 text-center"><nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                  <li class="breadcrumb-item"><a href="/userhome">Home</a></li>
+                  <li class="breadcrumb-item active" aria-current="page">New Post</li>
+                </ol>
+              </nav>
+            </div>
+            <div class="col-md-8 col-md-offset-2" >  
                 <form action="" method="post" enctype="multipart/form-data">
                     <div class="form-group">
                         <label for="title">Title</label>
@@ -24,11 +43,16 @@
                         <label for="tags">Tags (comma separated)</label>
                         <input type="text" class="form-control" id="tags" name="tags" required>
                     </div>
+
+                       
+                
                     <button type="submit" class="btn btn-primary">Create Post</button>
+                    <button class="btn btn-danger" onclick="window.location.href='/userhome';">Cancel</button>
                 </form>
             </div>
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
+
 </body>
 </html>

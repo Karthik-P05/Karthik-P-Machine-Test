@@ -87,8 +87,6 @@ def login():
             session['username'] = user['username']
             return render_template('user-home.html', user_data = user)
         
-        elif username == 'admin' and password == 'admin':
-            return render_template('admi-home.html')
         else:
             return render_template('home.html', error = "Invalid Username or Password!")
         
@@ -110,7 +108,7 @@ def create_post():
         title = request.form['title']
         description = request.form['description']
         tags = request.form['tags']
-        created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
+        created_at = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
         
         user_id = session['login_id']
         
@@ -119,13 +117,36 @@ def create_post():
         mysql.connection.commit()
         cur.close()
         
-        return redirect('home')
-        
-        
+        return redirect(url_for('my_posts'))
+    
+    
     return render_template('create-post.html')
+        
+        
+    # return render_template('create-post.html')
+
+@app.route('/userhome')
+def user_home():
+    if 'loggedin' in session:
+        user_data = session['username'] 
+        return render_template('user-home.html', user_data=user_data)
+    else:
+        return redirect(url_for('login'))
 
 
+@app.route('/myposts')
+def my_posts():
+    if 'loggedin' not in session:
+        return redirect('/home')
+    
+    user_id = session['login_id']
 
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM posts WHERE user_id = %s", (user_id,))
+    posts = cur.fetchall()
+    cur.close()
+
+    return render_template('my-post.html', posts=posts)
 
 
 
